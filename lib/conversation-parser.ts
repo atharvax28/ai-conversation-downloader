@@ -111,26 +111,51 @@ export function extractCodeBlocks(
     }
 
     if (!filename) {
-      const extMap: Record<string, string> = {
-        typescript: "ts",
-        javascript: "js",
-        tsx: "tsx",
-        jsx: "jsx",
-        python: "py",
-        css: "css",
-        html: "html",
-        json: "json",
-        sql: "sql",
-        bash: "sh",
-        shell: "sh",
-        yaml: "yml",
-        rust: "rs",
-        go: "go",
-        java: "java",
-        text: "txt",
+      const langMeta: Record<string, { ext: string; names: string[] }> = {
+        typescript: { ext: "ts", names: ["index", "utils", "helpers", "module"] },
+        javascript: { ext: "js", names: ["index", "utils", "helpers", "module"] },
+        tsx: { ext: "tsx", names: ["page", "component", "app", "layout"] },
+        jsx: { ext: "jsx", names: ["App", "Component", "Page", "Layout"] },
+        python: { ext: "py", names: ["main", "app", "script", "module"] },
+        css: { ext: "css", names: ["styles", "globals", "theme", "layout"] },
+        scss: { ext: "scss", names: ["styles", "globals", "theme", "variables"] },
+        html: { ext: "html", names: ["index", "page", "template", "layout"] },
+        json: { ext: "json", names: ["data", "config", "package", "schema"] },
+        sql: { ext: "sql", names: ["query", "migration", "schema", "seed"] },
+        bash: { ext: "sh", names: ["script", "setup", "deploy", "run"] },
+        shell: { ext: "sh", names: ["script", "setup", "deploy", "run"] },
+        yaml: { ext: "yml", names: ["config", "docker-compose", "workflow", "schema"] },
+        yml: { ext: "yml", names: ["config", "docker-compose", "workflow", "schema"] },
+        rust: { ext: "rs", names: ["main", "lib", "mod", "utils"] },
+        go: { ext: "go", names: ["main", "handler", "server", "utils"] },
+        java: { ext: "java", names: ["Main", "App", "Service", "Controller"] },
+        ruby: { ext: "rb", names: ["main", "app", "server", "script"] },
+        php: { ext: "php", names: ["index", "app", "controller", "config"] },
+        swift: { ext: "swift", names: ["main", "App", "ViewController", "Model"] },
+        kotlin: { ext: "kt", names: ["Main", "App", "Activity", "ViewModel"] },
+        csharp: { ext: "cs", names: ["Program", "Controller", "Service", "Model"] },
+        cs: { ext: "cs", names: ["Program", "Controller", "Service", "Model"] },
+        cpp: { ext: "cpp", names: ["main", "app", "utils", "lib"] },
+        c: { ext: "c", names: ["main", "utils", "lib", "module"] },
+        markdown: { ext: "md", names: ["README", "docs", "notes", "guide"] },
+        md: { ext: "md", names: ["README", "docs", "notes", "guide"] },
+        dockerfile: { ext: "Dockerfile", names: ["Dockerfile", "Dockerfile.dev", "Dockerfile.prod"] },
+        graphql: { ext: "graphql", names: ["schema", "queries", "mutations", "types"] },
+        prisma: { ext: "prisma", names: ["schema"] },
+        text: { ext: "txt", names: ["output", "notes", "log", "readme"] },
       }
-      const ext = extMap[language] || language || "txt"
-      filename = `code-${idx + 1}.${ext}`
+
+      const meta = langMeta[language] || { ext: language || "txt", names: ["snippet"] }
+      const nameIdx = Math.min(idx, meta.names.length - 1)
+      const baseName = meta.names[nameIdx]
+
+      // If we'd reuse a name, append a number
+      const usedNames = blocks.map((b) => b.filename)
+      let candidate = meta.ext === "Dockerfile" ? baseName : `${baseName}.${meta.ext}`
+      if (usedNames.includes(candidate)) {
+        candidate = meta.ext === "Dockerfile" ? `${baseName}-${idx + 1}` : `${baseName}-${idx + 1}.${meta.ext}`
+      }
+      filename = candidate
     }
 
     blocks.push({
